@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#020305">
+<meta name="description" content="T1 CHATBOT - Premium Universal AI Assistant">
+<title>T1 CHATBOT</title>
+
+<style>
+:root{
+  color-scheme:dark;
+  --bg:#020305;
+  --panel:#090d14;
+  --text:#f5f7fb;
+  --muted:#8792a3;
+  --border:#ffffff12;
+  --blue:#4285ff;
+  --cyan:#35d9ff;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;width:100%;height:100%;font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--text)}
+body{height:100dvh;overflow:hidden}
+button,input,textarea{font:inherit}
+button{cursor:pointer}
+button:disabled{opacity:.5;cursor:not-allowed}
+button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid #55a5ff;outline-offset:2px}
+.app-background{position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 100%,#174b9b38,transparent 65%),radial-gradient(ellipse at 90% 15%,#6538b51c,transparent 55%),#020305}
+.app-background:after{content:"";position:absolute;inset:0;opacity:.16;background-image:radial-gradient(circle,#fff 1px,transparent 1.5px);background-size:100px 100px}
+
+/* FAST LOADING SCREEN */
+#loading{
+  position:fixed;inset:0;z-index:99999;display:grid;place-items:center;
+  background:radial-gradient(ellipse at 50% 40%,#10244b 0%,#050914 38%,#020305 75%);
+  transition:opacity .25s ease,visibility .25s ease
+}
+#loading.hidden{opacity:0;visibility:hidden;pointer-events:none}
+.loader-content{text-align:center;display:flex;flex-direction:column;align-items:center;padding:24px}
+.loader-logo{
+  display:grid;place-items:center;width:76px;height:76px;border-radius:25px;
+  font-size:28px;font-weight:950;letter-spacing:-2px;color:white;
+  background:linear-gradient(135deg,#3de6ff,#3477ff 52%,#784aff);
+  box-shadow:0 0 24px #347bff65,0 0 80px #347bff27;
+  animation:logoFloat 1.8s ease-in-out infinite
+}
+.loader-title{font-size:19px;font-weight:850;letter-spacing:3px;margin-top:23px}
+.loader-sub{font-size:9px;letter-spacing:2.3px;color:#8499ba;margin-top:8px}
+.loader-track{width:155px;height:3px;border-radius:10px;background:#ffffff15;overflow:hidden;margin-top:25px}
+.loader-progress{height:100%;width:35%;border-radius:10px;background:linear-gradient(90deg,#3d7bff,#41e2ff);animation:progress .9s ease-in-out infinite alternate}
+.loader-credit{position:absolute;bottom:max(23px,env(safe-area-inset-bottom));left:0;right:0;text-align:center;font-size:9px;letter-spacing:2.5px;font-weight:800;color:#9daecb75}
+@keyframes progress{from{transform:translateX(-10%)}to{transform:translateX(205%)}}
+@keyframes logoFloat{50%{transform:translateY(-4px);box-shadow:0 0 35px #347bff80,0 0 90px #347bff35}}
+
+#app{position:relative;height:100dvh;display:flex}
+#sidebar{width:278px;flex-shrink:0;border-right:1px solid var(--border);background:#05080df5;backdrop-filter:blur(18px);display:flex;flex-direction:column;z-index:100}
+.brand{padding:20px 17px 18px;display:flex;align-items:center;gap:11px}
+.brand-logo,.avatar-ai{display:grid;place-items:center;color:#fff;font-weight:900;background:linear-gradient(135deg,#39e4ff,#376eff 48%,#704cff);box-shadow:0 0 20px #377eff30}
+.brand-logo{width:40px;height:40px;border-radius:13px;font-size:14px}
+.brand-name{font-size:14px;font-weight:800}
+.brand-sub{color:#667487;font-size:9px;margin-top:4px;letter-spacing:.8px;text-transform:uppercase}
+.new-chat{margin:0 13px 18px;height:44px;border:1px solid #4691ff50;border-radius:13px;color:#fff;font-size:12px;font-weight:700;background:linear-gradient(135deg,#2b6fff30,#35d3ff0e)}
+.new-chat:active{transform:scale(.98)}
+.history-label{padding:0 16px 10px;color:#667183;font-size:9px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase}
+#chatList{flex:1;min-height:0;overflow-y:auto;padding:0 8px 12px;scrollbar-width:thin}
+.chat-item{position:relative;display:flex;align-items:center;gap:5px;width:100%;padding:11px 5px 11px 11px;margin-bottom:3px;border-radius:11px;border:1px solid transparent;color:#aeb7c5;background:transparent;text-align:left}
+.chat-item:hover{background:#ffffff08;color:#fff}
+.chat-item.active{background:#3c77ff1b;border-color:#4586ff25;color:#fff}
+.chat-item-main{flex:1;min-width:0}
+.chat-title{font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chat-count{margin-top:4px;font-size:9px;color:#647083}
+.chat-menu{flex:0 0 29px;width:29px;height:29px;border-radius:8px;color:#929dad;background:#ffffff06;border:0}
+.sidebar-footer{padding:9px 9px max(12px,env(safe-area-inset-bottom));border-top:1px solid #ffffff0f}
+.side-button{width:100%;border:0;border-radius:10px;padding:11px;background:transparent;color:#929dad;text-align:left;font-size:11px;display:flex;align-items:center;gap:10px}
+.side-button:hover{color:#fff;background:#ffffff09}
+.side-button span:first-child{width:15px;text-align:center}
+
+.main{min-width:0;min-height:0;flex:1;display:flex;flex-direction:column;position:relative}
+.topbar{height:62px;flex-shrink:0;display:flex;align-items:center;padding:0 18px;border-bottom:1px solid #ffffff0b;background:#020305b8;backdrop-filter:blur(16px)}
+.topbar-inner{width:100%;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.top-left{display:flex;align-items:center;gap:9px;min-width:0}
+.current-title{font-size:12px;font-weight:750;color:#e2e8f1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.model-name{color:#718096;font-size:9px;margin-top:4px;overflow-wrap:anywhere}
+.top-actions{display:flex;gap:4px}
+.icon-button,.mobile-menu{width:36px;height:36px;display:grid;place-items:center;border:1px solid transparent;border-radius:10px;background:transparent;color:#929dad}
+.icon-button:hover,.mobile-menu:hover{color:#fff;background:#ffffff09}
+.mobile-menu{display:none}
+
+#messagesContainer{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#293243 transparent}
+#messagesInner{width:min(900px,calc(100% - 30px));margin:0 auto;padding:27px 0 30px}
+.hero{min-height:calc(100dvh - 180px);display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:25px 0 45px}
+.hero-logo-wrap{position:relative;margin-bottom:23px}
+.hero-logo-glow{position:absolute;inset:-25px;border-radius:50%;background:radial-gradient(circle,#328aff40,#245aff12 45%,transparent 72%);filter:blur(12px)}
+.hero-logo{position:relative;display:grid;place-items:center;width:67px;height:67px;border-radius:22px;font-size:22px;font-weight:950;letter-spacing:-2px;color:white;background:linear-gradient(135deg,#39e4ff,#376eff 48%,#704cff);box-shadow:0 0 28px #377eff35}
+.hero h1{margin:0;font-size:clamp(30px,5vw,51px);line-height:1.1;letter-spacing:-2px;background:linear-gradient(110deg,#fff,#b8d6ff 43%,#fff 65%,#9daaff);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p{max-width:520px;margin:13px auto 0;color:#8792a3;font-size:12px;line-height:1.8}
+.suggestions{width:100%;max-width:710px;margin-top:30px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+.suggestion{min-height:84px;text-align:left;padding:13px;border-radius:15px;border:1px solid #ffffff12;background:#0b0f16c9;color:#c8ced8}
+.suggestion:hover{border-color:#498cff60;background:#121925}
+.suggestion-icon{width:27px;height:27px;display:grid;place-items:center;margin-bottom:9px;border-radius:9px;background:#3a7dff20;color:#80b6ff;font-size:13px}
+.suggestion-title{font-size:10px;line-height:1.6}
+
+.message-row{display:flex;gap:10px;margin-bottom:23px;min-width:0}
+.message-row.user{justify-content:flex-end}
+.avatar-ai{width:31px;height:31px;flex:0 0 31px;border-radius:10px;font-size:9px}
+.avatar-user{display:grid;place-items:center;width:31px;height:31px;flex:0 0 31px;border-radius:10px;background:#ffffff12;color:#c6d0df;font-size:10px}
+.message-bubble{max-width:min(760px,84%);min-width:0;font-size:13px;line-height:1.75;overflow-wrap:anywhere;color:#d0d7e2}
+.message-row.user .message-bubble{padding:11px 14px;border-radius:17px 17px 5px 17px;background:linear-gradient(135deg,#2353a38c,#2948825c);border:1px solid #4f8eff29;color:#edf3ff;white-space:pre-wrap}
+.message-bubble p{margin:0 0 11px}
+.message-bubble p:last-child{margin-bottom:0}
+.message-bubble h1,.message-bubble h2,.message-bubble h3{color:#f5f7fb;margin:16px 0 8px;line-height:1.35}
+.message-bubble ul,.message-bubble ol{padding-left:21px}
+.message-bubble li{margin:4px 0}
+.message-bubble code{padding:2px 5px;border-radius:5px;background:#ffffff12;color:#8bdcff;font-size:.9em}
+.message-bubble pre{overflow:auto;padding:13px;margin:12px 0;border-radius:12px;background:#070a0f;border:1px solid #ffffff12}
+.message-bubble pre code{padding:0;background:transparent;color:#dce7f7;font-size:11px}
+.message-bubble blockquote{margin:12px 0;padding-left:12px;border-left:2px solid #3e80ff;color:#929eaf}
+.typing-cursor{display:inline-block;width:2px;height:15px;margin-left:3px;vertical-align:-2px;background:#57aaff;animation:blink .7s infinite}
+@keyframes blink{50%{opacity:0}}
+.message-tools{display:flex;gap:6px;margin-top:8px}
+.message-tool{border:1px solid #ffffff12;background:#ffffff06;color:#8290a2;border-radius:7px;padding:4px 7px;font-size:10px}
+.message-tool:hover{color:#fff}
+
+.composer-area{flex-shrink:0;z-index:40;width:100%;padding:10px 15px max(11px,env(safe-area-inset-bottom));background:linear-gradient(to top,#020305 30%,#020305e8 75%,transparent)}
+.composer{width:min(780px,100%);margin:0 auto;padding:8px;border-radius:21px;border:1px solid #ffffff19;background:linear-gradient(145deg,#141820ed,#080b11ed);box-shadow:0 20px 60px #0008,0 0 35px #145bff10;backdrop-filter:blur(20px)}
+.composer-row{display:flex;align-items:flex-end;gap:6px}
+.composer-icon{width:39px;height:40px;flex:0 0 39px;border-radius:12px;border:0;color:#8a97a8;background:transparent;font-size:20px}
+#messageInput{flex:1;min-width:0;min-height:40px;max-height:145px;padding:9px 6px;border:0;outline:0;color:#eef3fa;background:transparent;font-size:13px;line-height:1.5;resize:none}
+#messageInput::placeholder{color:#647083}
+#sendButton{width:40px;height:40px;flex:0 0 40px;border-radius:12px;border:1px solid #5694ff40;color:white;background:linear-gradient(135deg,#3c87ff,#3859e8);box-shadow:0 0 18px #3170ff30;font-size:18px}
+#sendButton.stop-mode{background:linear-gradient(135deg,#e34c68,#ad2949)}
+.composer-footer{display:flex;justify-content:space-between;gap:8px;padding:5px 8px 1px;color:#718096;font-size:8px}
+.watermark{text-align:center;color:#a8b5c82e;font-size:7px;letter-spacing:2px;font-weight:800;margin-top:8px}
+#mobileOverlay{display:none}
+
+.modal{position:fixed;inset:0;z-index:500;display:none;align-items:center;justify-content:center;padding:18px;background:#000b;backdrop-filter:blur(9px)}
+.modal.open{display:flex}
+.modal-card{width:min(500px,100%);max-height:calc(100dvh - 36px);overflow:auto;border-radius:20px;padding:20px;background:linear-gradient(145deg,#11161ffd,#06090efd);border:1px solid #ffffff19;box-shadow:0 35px 100px #000a}
+.modal-title{font-size:17px;font-weight:800}
+.modal-subtitle{margin-top:6px;color:#8994a5;font-size:10px;line-height:1.7}
+.field{margin-top:16px}
+.field label{display:block;margin-bottom:7px;color:#bac4d2;font-size:10px;font-weight:700}
+.field input,.field textarea{width:100%;border:1px solid #ffffff18;border-radius:11px;padding:11px 12px;outline:0;color:#eef2f7;background:#ffffff09;font-size:12px}
+.field textarea{min-height:170px;line-height:1.6;resize:vertical}
+.field input:focus,.field textarea:focus{border-color:#4a8bff75}
+.modal-actions{display:flex;justify-content:flex-end;gap:7px;margin-top:19px;flex-wrap:wrap}
+.modal-button{min-height:38px;border-radius:10px;border:1px solid #ffffff17;padding:0 13px;color:#c2ccda;background:#ffffff09;font-size:11px;font-weight:700}
+.modal-button.primary{color:white;border-color:#4184ff50;background:linear-gradient(135deg,#347dff,#4a54e8)}
+.modal-button.danger{color:white;background:#bd3545}
+.settings-note{margin-top:13px;padding:11px;border-radius:10px;background:#ffffff07;color:#8995a6;font-size:10px;line-height:1.7}
+.api-key-row{display:flex;gap:7px}
+.api-key-row input{flex:1;min-width:0}
+.api-key-row button{padding:0 12px;border-radius:11px;border:1px solid #ffffff17;color:#cbd7e8;background:#ffffff0a;font-size:11px}
+.inline-error{display:none;margin-top:10px;color:#ff8796;font-size:11px;line-height:1.6}
+.light-mode{--bg:#f3f6fb;--text:#172033;--panel:#fff;--muted:#64748b;--border:#00000015}
+.light-mode .app-background{background:radial-gradient(ellipse at 50% 100%,#a7c9ff65,transparent 65%),#f3f6fb}
+.light-mode #sidebar{background:#f9fbfff2}
+.light-mode .topbar{background:#f3f6fbdc}
+.light-mode .current-title{color:#172033}
+.light-mode .composer{background:#ffffffed;border-color:#00000018}
+.light-mode #messageInput{color:#172033}
+.light-mode .suggestion{background:#ffffffc9;color:#263349;border-color:#00000012}
+.light-mode .hero p{color:#64748b}
+.light-mode .message-bubble{color:#263349}
+.light-mode .message-bubble h1,.light-mode .message-bubble h2,.light-mode .message-bubble h3{color:#172033}
+.light-mode .composer-area{background:linear-gradient(to top,#f3f6fb 30%,#f3f6fbe8 75%,transparent)}
+.light-mode .chat-item{color:#475569}
+.light-mode .chat-item.active{color:#173c7d;background:#dceaff}
+.light-mode .modal-card{background:#fff;color:#172033}
+.light-mode .field input,.light-mode .field textarea{color:#172033;background:#f5f7fb;border-color:#00000018}
+
+@media(max-width:767px){
+  #sidebar{position:fixed;left:0;top:0;bottom:0;width:min(300px,88vw);height:100dvh;transform:translateX(-105%);transition:transform .2s ease;box-shadow:20px 0 60px #0008}
+  #sidebar.mobile-open{transform:translateX(0)}
+  #mobileOverlay.open{display:block;position:fixed;inset:0;z-index:90;background:#0009}
+  .mobile-menu{display:grid;place-items:center}
+  .topbar{padding:0 9px}
+  .top-actions .rename-button{display:none}
+  #messagesInner{width:calc(100% - 22px);padding-top:13px;padding-bottom:23px}
+  .hero{min-height:calc(100dvh - 180px);padding:17px 0 28px}
+  .hero-logo{width:59px;height:59px;border-radius:19px}
+  .hero h1{font-size:34px;letter-spacing:-1.4px}
+  .hero p{max-width:350px;font-size:11px}
+  .suggestions{grid-template-columns:1fr;max-width:390px;gap:7px;margin-top:21px}
+  .suggestion{min-height:55px;display:flex;align-items:center;gap:11px;padding:10px}
+  .suggestion-icon{flex:0 0 28px;margin:0}
+  .message-bubble{max-width:88%;font-size:12px}
+  .avatar-ai,.avatar-user{width:29px;height:29px;flex-basis:29px}
+  .composer-area{padding-left:8px;padding-right:8px}
+  .composer{border-radius:19px}
+  #messageInput{font-size:16px}
+  .composer-footer{display:none}
+  .watermark{font-size:6px}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*:before,*:after{animation-duration:.01ms!important;transition-duration:.01ms!important}
+}
+</style>
+</head>
+<body>
+
+<div id="loading" aria-label="Loading T1 Chatbot">
+  <div class="loader-content">
+    <div class="loader-logo">T1</div>
+    <div class="loader-title">T1 CHATBOT</div>
+    <div class="loader-sub">UNIVERSAL AI ASSISTANT</div>
+    <div class="loader-track"><div class="loader-progress"></div></div>
+  </div>
+  <div class="loader-credit">MADE BY TAMIM IQBAL</div>
+</div>
+
+<div class="app-background"></div>
+<div id="mobileOverlay"></div>
+
+<div id="app">
+  <aside id="sidebar">
+    <div class="brand">
+      <div class="brand-logo">T1</div>
+      <div>
+        <div class="brand-name">T1 CHATBOT</div>
+        <div class="brand-sub">Universal AI Interface</div>
+      </div>
+    </div>
+    <button id="newChatButton" class="new-chat" type="button">＋ &nbsp; New Conversation</button>
+    <div class="history-label">Conversations</div>
+    <div id="chatList"></div>
+    <div class="sidebar-footer">
+      <button id="systemPromptButton" class="side-button" type="button"><span>◈</span><span>System Intelligence</span></button>
+      <button id="settingsButton" class="side-button" type="button"><span>⚙</span><span>Connection Settings</span></button>
+      <button id="themeButton" class="side-button" type="button"><span id="themeIcon">☼</span><span id="themeText">Visual Theme</span></button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <div class="topbar-inner">
+        <div class="top-left">
+          <button id="mobileMenuButton" class="mobile-menu" type="button" aria-label="Open menu">☰</button>
+          <div style="min-width:0">
+            <div id="currentChatTitle" class="current-title">T1 CHATBOT</div>
+            <div id="currentModel" class="model-name">AI Engine · Ready</div>
+          </div>
+        </div>
+        <div class="top-actions">
+          <button id="renameButton" class="icon-button rename-button" type="button" title="Rename conversation">✎</button>
+          <button id="topSettingsButton" class="icon-button" type="button" title="Settings">⚙</button>
+        </div>
+      </div>
+    </header>
+
+    <section id="messagesContainer" aria-live="polite">
+      <div id="messagesInner"></div>
+    </section>
+
+    <div class="composer-area">
+      <div class="composer">
+        <div class="composer-row">
+          <button id="attachButton" class="composer-icon" type="button" title="More options" aria-label="More options">＋</button>
+          <textarea id="messageInput" rows="1" autocomplete="off" placeholder="Ask T1 CHATBOT anything..."></textarea>
+          <button id="sendButton" type="button" title="Send message" aria-label="Send message">↑</button>
+        </div>
+        <div class="composer-footer">
+          <span id="statusText">Ready</span>
+          <span>Enter to send · Shift + Enter for new line</span>
+        </div>
+      </div>
+      <div class="watermark">MADE BY TAMIM IQBAL</div>
+    </div>
+  </main>
+</div>
+
+<!-- Password screen -->
+<div id="apiUnlockModal" class="modal">
+  <div class="modal-card">
+    <div class="modal-title">🔐 Protected API Settings</div>
+    <div class="modal-subtitle">Enter your settings password to open the connection settings.</div>
+    <form id="apiUnlockForm">
+      <div class="field">
+        <label for="apiUnlockPassword">SETTINGS PASSWORD</label>
+        <input id="apiUnlockPassword" type="password" autocomplete="current-password" placeholder="Enter password" required>
+      </div>
+      <div id="apiUnlockError" class="inline-error"></div>
+      <div class="modal-actions">
+        <button id="cancelUnlockButton" type="button" class="modal-button">Cancel</button>
+        <button type="submit" class="modal-button primary">Unlock Settings</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- API settings -->
+<div id="settingsModal" class="modal">
+  <div class="modal-card">
+    <div class="modal-title">Connection Settings</div>
+    <div class="modal-subtitle">Connect T1 CHATBOT to OpenRouter.</div>
+    <div class="field">
+      <label for="apiKeyInput">OPENROUTER API KEY</label>
+      <div class="api-key-row">
+        <input id="apiKeyInput" type="password" autocomplete="off" placeholder="Enter your API key">
+        <button id="toggleApiKeyButton" type="button">Show</button>
+      </div>
+    </div>
+    <div class="field">
+      <label for="modelInput">AI MODEL</label>
+      <input id="modelInput" type="text" autocomplete="off" placeholder="openrouter/free">
+    </div>
+    <div class="settings-note">
+      Default model: openrouter/free. Your settings are saved in this browser.
+      Never paste your API key into public code or share it with anyone.
+      A frontend password is only a visual lock, not real security.
+    </div>
+    <div id="settingsError" class="inline-error"></div>
+    <div class="modal-actions">
+      <button id="closeSettingsButton" type="button" class="modal-button">Cancel</button>
+      <button id="saveSettingsButton" type="button" class="modal-button primary">Save Connection</button>
+    </div>
+  </div>
+</div>
+
+<!-- System prompt -->
+<div id="systemPromptModal" class="modal">
+  <div class="modal-card">
+    <div class="modal-title">System Intelligence</div>
+    <div class="modal-subtitle">Customize the assistant's behavior and identity.</div>
+    <div class="field">
+      <label for="systemPromptInput">SYSTEM PROMPT</label>
+      <textarea id="systemPromptInput"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button id="clearPromptButton" type="button" class="modal-button">Default</button>
+      <button id="closePromptButton" type="button" class="modal-button">Cancel</button>
+      <button id="savePromptButton" type="button" class="modal-button primary">Save Prompt</button>
+    </div>
+  </div>
+</div>
+
+<!-- Rename -->
+<div id="renameModal" class="modal">
+  <div class="modal-card">
+    <div class="modal-title">Rename Conversation</div>
+    <div class="field">
+      <label for="renameInput">CONVERSATION NAME</label>
+      <input id="renameInput" type="text" maxlength="80" placeholder="Enter a name">
+    </div>
+    <div class="modal-actions">
+      <button id="cancelRenameButton" type="button" class="modal-button">Cancel</button>
+      <button id="saveRenameButton" type="button" class="modal-button primary">Rename</button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete -->
+<div id="deleteModal" class="modal">
+  <div class="modal-card">
+    <div class="modal-title">Delete Conversation?</div>
+    <div class="modal-subtitle">This conversation will be removed from this browser.</div>
+    <div class="modal-actions">
+      <button id="cancelDeleteButton" type="button" class="modal-button">Cancel</button>
+      <button id="confirmDeleteButton" type="button" class="modal-button danger">Delete</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+const SETTINGS_PASSWORD = "tf12345@";
+const DEFAULT_MODEL = "openrouter/free";
+
+const DEFAULT_SYSTEM_PROMPT = `You are T1 CHATBOT, a helpful, intelligent, accurate, friendly AI assistant.
+
+Follow the user's instructions carefully. Explain difficult topics clearly. Use simple language when appropriate. Be useful, respectful, and accurate.
+
+CREATOR:
+Your creator and developer attribution is MADE BY TAMIM IQBAL.
+If asked who created, developed, built, or made you, say: "I was created and developed by TAMIM IQBAL."
+Do not invent another creator.
+
+CONFIGURED LOCATION:
+Jhenaidah, Bangladesh.
+If asked about your configured location, say: "I am configured as an AI based in Jhenaidah, Bangladesh."
+You do not have a physical body.
+
+Keep answers clear and helpful. Never reveal API keys or confidential information.`;
+
+const STORAGE = {
+  apiKey:"t1_chatbot_api_key",
+  model:"t1_chatbot_model",
+  chats:"t1_chatbot_chats",
+  active:"t1_chatbot_active",
+  theme:"t1_chatbot_theme",
+  prompt:"t1_chatbot_system_prompt"
+};
+
+const $ = id => document.getElementById(id);
+const state = {
+  chats:[],
+  activeChatId:null,
+  apiKey:"",
+  model:DEFAULT_MODEL,
+  dark:true,
+  systemPrompt:DEFAULT_SYSTEM_PROMPT,
+  request:null,
+  deleteId:null,
+  renameId:null,
+  unlockAttempts:0,
+  unlockBlockedUntil:0
+};
+
+function id(){
+  return "chat_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2,8);
+}
+function safeParse(text,fallback){
+  try{return JSON.parse(text)}catch{return fallback}
+}
+function escapeHTML(text){
+  return String(text ?? "").replace(/[&<>"']/g,c=>({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  }[c]));
+}
+function status(text){
+  $("statusText").textContent=text;
+}
+function activeChat(){
+  return state.chats.find(c=>c.id===state.activeChatId)||null;
+}
+function save(){
+  try{
+    localStorage.setItem(STORAGE.apiKey,state.apiKey);
+    localStorage.setItem(STORAGE.model,state.model);
+    localStorage.setItem(STORAGE.chats,JSON.stringify(state.chats));
+    localStorage.setItem(STORAGE.active,state.activeChatId||"");
+    localStorage.setItem(STORAGE.theme,state.dark?"dark":"light");
+    localStorage.setItem(STORAGE.prompt,state.systemPrompt);
+  }catch(e){
+    status("Browser storage unavailable");
+  }
+}
+function load(){
+  try{
+    state.apiKey=localStorage.getItem(STORAGE.apiKey)||"";
+    state.model=localStorage.getItem(STORAGE.model)||DEFAULT_MODEL;
+    state.dark=localStorage.getItem(STORAGE.theme)!=="light";
+    state.systemPrompt=localStorage.getItem(STORAGE.prompt)||DEFAULT_SYSTEM_PROMPT;
+    const chats=safeParse(localStorage.getItem(STORAGE.chats)||"[]",[]);
+    state.chats=Array.isArray(chats)?chats.filter(c=>c&&c.id&&Array.isArray(c.messages)):[];
+
+    state.activeChatId=localStorage.getItem(STORAGE.active)||null;
+    if(!state.chats.some(c=>c.id===state.activeChatId)){
+      state.activeChatId=state.chats[0]?.id||null;
+    }
+  }catch(e){
+    state.chats=[];
+    state.activeChatId=null;
+  }
+  if(!state.activeChatId)createChat(false);
+}
+function newChatObject(){
+  return {id:id(),title:"New Conversation",createdAt:Date.now(),updatedAt:Date.now(),messages:[]};
+}
+
+/* A running answer is cancelled safely before changing conversations. */
+function stopStreaming(showStatus=true){
+  const req=state.request;
+  if(!req)return;
+  state.request=null;
+  try{req.controller.abort()}catch(e){}
+  if(req.chatId){
+    const chat=state.chats.find(c=>c.id===req.chatId);
+    const msg=chat?.messages.find(m=>m.id===req.messageId);
+    if(msg && msg.streaming){
+      msg.streaming=false;
+      if(!msg.content)msg.content="Response stopped.";
+    }
+  }
+  updateSendButton();
+  if(showStatus)status("Response stopped");
+  save();
+  if(req.chatId===state.activeChatId)renderMessages();
+}
+
+function createChat(focus=true){
+  stopStreaming(false);
+  const chat=newChatObject();
+  state.chats.unshift(chat);
+  state.activeChatId=chat.id;
+  save();
+  renderSidebar();
+  renderMessages();
+  updateHeader();
+  closeSidebar();
+  status("New conversation ready");
+  if(focus)setTimeout(()=>$("messageInput").focus({preventScroll:true}),20);
+}
+function selectChat(chatId){
+  const chat=state.chats.find(c=>c.id===chatId);
+  if(!chat)return;
+  stopStreaming(false);
+  state.activeChatId=chatId;
+  save();
+  renderSidebar();
+  renderMessages();
+  updateHeader();
+  closeSidebar();
+  status("Conversation opened");
+}
+function titleFromText(text){
+  const t=String(text||"").replace(/\s+/g," ").trim();
+  return !t?"New Conversation":t.length>38?t.slice(0,38).trim()+"…":t;
+}
+function renameChat(chatId,title){
+  const chat=state.chats.find(c=>c.id===chatId);
+  if(!chat)return;
+  chat.title=title.trim()||"New Conversation";
+  chat.updatedAt=Date.now();
+  save();
+  renderSidebar();
+  updateHeader();
+}
+function deleteChat(chatId){
+  stopStreaming(false);
+  state.chats=state.chats.filter(c=>c.id!==chatId);
+  if(state.activeChatId===chatId)state.activeChatId=null;
+  if(!state.activeChatId){
+    const chat=newChatObject();
+    state.chats.unshift(chat);
+    state.activeChatId=chat.id;
+  }
+  save();
+  renderSidebar();
+  renderMessages();
+  updateHeader();
+}
+function openModal(id){$(id).classList.add("open")}
+function closeModal(id){$(id).classList.remove("open")}
+function closeSidebar(){
+  $("sidebar").classList.remove("mobile-open");
+  $("mobileOverlay").classList.remove("open");
+}
+function toggleSidebar(){
+  $("sidebar").classList.toggle("mobile-open");
+  $("mobileOverlay").classList.toggle("open");
+}
+function updateHeader(){
+  const chat=activeChat();
+  $("currentChatTitle").textContent=chat?.title||"T1 CHATBOT";
+  $("currentModel").textContent="AI Engine · "+(state.model||DEFAULT_MODEL);
+}
+function renderSidebar(){
+  const list=$("chatList");
+  list.replaceChildren();
+  state.chats.forEach(chat=>{
+    const item=document.createElement("div");
+    item.className="chat-item"+(chat.id===state.activeChatId?" active":"");
+
+    const main=document.createElement("button");
+    main.type="button";
+    main.className="chat-item-main";
+    main.style.cssText="border:0;background:transparent;color:inherit;text-align:left;min-width:0;padding:0";
+    main.innerHTML='<div class="chat-title">'+escapeHTML(chat.title||"New Conversation")+
+      '</div><div class="chat-count">'+(chat.messages?.length||0)+' messages</div>';
+    main.addEventListener("click",()=>selectChat(chat.id));
+
+    const menu=document.createElement("button");
+    menu.type="button";
+    menu.className="chat-menu";
+    menu.textContent="⋯";
+    menu.title="Conversation options";
+    menu.setAttribute("aria-label","Conversation options");
+    menu.addEventListener("click",e=>{
+      e.stopPropagation();
+      const choice=prompt("Type R to rename or D to delete this conversation.");
+      if(!choice)return;
+      if(choice.trim().toLowerCase()==="r"){
+        state.renameId=chat.id;
+        $("renameInput").value=chat.title||"";
+        openModal("renameModal");
+        setTimeout(()=>$("renameInput").focus(),30);
+      }else if(choice.trim().toLowerCase()==="d"){
+        state.deleteId=chat.id;
+        openModal("deleteModal");
+      }
+    });
+    item.append(main,menu);
+    list.appendChild(item);
+  });
+}
+function markdownToHTML(text){
+  const escaped=escapeHTML(text);
+  let html=escaped
+    .replace(/```([\s\S]*?)```/g,(_,code)=>"<pre><code>"+code.trim()+"</code></pre>")
+    .replace(/`([^`\n]+)`/g,"<code>$1</code>")
+    .replace(/^### (.*)$/gm,"<h3>$1</h3>")
+    .replace(/^## (.*)$/gm,"<h2>$1</h2>")
+    .replace(/^# (.*)$/gm,"<h1>$1</h1>")
+    .replace(/^\s*[-*] (.*)$/gm,"<li>$1</li>")
+    .replace(/^\s*\d+\. (.*)$/gm,"<li>$1</li>")
+    .replace(/\*\*(.*?)\*\*/g,"<strong>$1</strong>")
+    .replace(/\*(.*?)\*/g,"<em>$1</em>");
+  const blocks=html.split(/\n{2,}/).map(block=>{
+    block=block.trim();
+    if(!block)return "";
+    if(/^<(h[1-3]|pre|ul|ol|blockquote|li)/.test(block))return block;
+    if(block.startsWith("<li>"))return "<ul>"+block+"</ul>";
+    return "<p>"+block.replace(/\n/g,"<br>")+"</p>";
+  });
+  return blocks.join("");
+}
+function renderMessages(){
+  const container=$("messagesInner");
+  container.replaceChildren();
+  const chat=activeChat();
+  if(!chat||!chat.messages.length){
+    const hero=document.createElement("div");
+    hero.className="hero";
+    hero.innerHTML=`
+      <div class="hero-logo-wrap"><div class="hero-logo-glow"></div><div class="hero-logo">T1</div></div>
+      <h1>Meet T1 CHATBOT</h1>
+      <p>Your intelligent AI workspace. Ask questions, explore ideas, learn new things, and create something amazing.</p>
+      <div class="suggestions">
+        <button class="suggestion" data-prompt="Explain a difficult topic in very simple words."><span class="suggestion-icon">✧</span><span class="suggestion-title">Explain a topic in simple words</span></button>
+        <button class="suggestion" data-prompt="Give me creative ideas for a premium website."><span class="suggestion-icon">◇</span><span class="suggestion-title">Create ideas for a website</span></button>
+        <button class="suggestion" data-prompt="Help me make a simple study plan for today."><span class="suggestion-icon">⌁</span><span class="suggestion-title">Make a study plan</span></button>
+      </div>`;
+    hero.querySelectorAll("[data-prompt]").forEach(button=>{
+      button.addEventListener("click",()=>{
+        $("messageInput").value=button.dataset.prompt;
+        autoResizeInput();
+        $("messageInput").focus();
+      });
+    });
+    container.appendChild(hero);
+    return;
+  }
+
+  chat.messages.forEach(message=>{
+    const row=document.createElement("div");
+    row.className="message-row "+(message.role==="user"?"user":"assistant");
+
+    const avatar=document.createElement("div");
+    avatar.className=message.role==="user"?"avatar-user":"avatar-ai";
+    avatar.textContent=message.role==="user"?"YOU":"T1";
+
+    const bubble=document.createElement("div");
+    bubble.className="message-bubble";
+    if(message.role==="user"){
+      bubble.textContent=message.content||"";
+    }else{
+      bubble.innerHTML=markdownToHTML(message.content||"");
+      if(message.streaming)bubble.insertAdjacentHTML("beforeend",'<span class="typing-cursor"></span>');
+    }
+
+    if(message.role==="user"){
+      row.append(bubble,avatar);
+    }else{
+      row.append(avatar,bubble);
+    }
+    container.appendChild(row);
+  });
+
+  requestAnimationFrame(()=>{ $("messagesContainer").scrollTop=$("messagesContainer").scrollHeight; });
+}
+function renderAll(){
+  renderSidebar();
+  renderMessages();
+  updateHeader();
+  updateSendButton();
+  document.body.classList.toggle("light-mode",!state.dark);
+  $("themeIcon").textContent=state.dark?"☼":"☾";
+  $("themeText").textContent=state.dark?"Visual Theme: Dark":"Visual Theme: Light";
+}
+function autoResizeInput(){
+  const input=$("messageInput");
+  input.style.height="auto";
+  input.style.height=Math.min(input.scrollHeight,145)+"px";
+}
+function updateSendButton(){
+  const running=!!state.request;
+  $("sendButton").textContent=running?"■":"↑";
+  $("sendButton").classList.toggle("stop-mode",running);
+  $("sendButton").title=running?"Stop response":"Send message";
+  $("sendButton").setAttribute("aria-label",running?"Stop response":"Send message");
+}
+function getSystemPrompt(chat){
+  return chat.systemPrompt||state.systemPrompt||DEFAULT_SYSTEM_PROMPT;
+}
+async function sendMessage(){
+  if(state.request){
+    stopStreaming(true);
+    return;
+  }
+  const input=$("messageInput");
+  const text=input.value.trim();
+  if(!text)return;
+
+  if(!state.apiKey){
+    status("Add your API key in Connection Settings");
+    openSettings();
+    $("settingsError").textContent="Please add your OpenRouter API key first.";
+    $("settingsError").style.display="block";
+    return;
+  }
+
+  const chat=activeChat()||newChatObject();
+  if(!state.chats.some(c=>c.id===chat.id)){
+    state.chats.unshift(chat);
+    state.activeChatId=chat.id;
+  }
+
+  chat.messages.push({id:id(),role:"user",content:text});
+  const assistantMessage={id:id(),role:"assistant",content:"",streaming:true};
+  chat.messages.push(assistantMessage);
+  chat.updatedAt=Date.now();
+
+  if(chat.messages.filter(m=>m.role==="user").length===1){
+    chat.title=titleFromText(text);
+  }
+
+  input.value="";
+  autoResizeInput();
+  save();
+  renderSidebar();
+  renderMessages();
+  updateHeader();
+  status("Connecting to AI…");
+
+  const controller=new AbortController();
+  const request={
+    controller,
+    chatId:chat.id,
+    messageId:assistantMessage.id
+  };
+  state.request=request;
+  updateSendButton();
+
+  const apiMessages=[
+    {role:"system",content:getSystemPrompt(chat)},
+    ...chat.messages
+      .filter(m=>m.id!==assistantMessage.id && (m.role==="user"||m.role==="assistant"))
+      .map(m=>({role:m.role,content:m.content||""}))
+  ];
+
+  try{
+    const response=await fetch("https://openrouter.ai/api/v1/chat/completions",{
+      method:"POST",
+      headers:{
+        "Authorization":"Bearer "+state.apiKey,
+        "Content-Type":"application/json",
+        "HTTP-Referer":location.origin==="null"?"https://localhost":location.origin,
+        "X-Title":"T1 CHATBOT"
+      },
+      body:JSON.stringify({
+        model:state.model||DEFAULT_MODEL,
+        messages:apiMessages,
+        stream:true
+      }),
+      signal:controller.signal
+    });
+
+    if(!response.ok){
+      let detail="";
+      try{
+        const data=await response.json();
+        detail=data?.error?.message||data?.message||"";
+      }catch(e){}
+      throw new Error("API error "+response.status+(detail?": "+detail:""));
+    }
+    if(!response.body)throw new Error("Streaming is not supported by this browser.");
+
+    const reader=response.body.getReader();
+    const decoder=new TextDecoder();
+    let buffer="";
+
+    while(true){
+      const result=await reader.read();
+      if(result.done)break;
+      if(state.request!==request)break;
+
+      buffer+=decoder.decode(result.value,{stream:true});
+      const lines=buffer.split("\n");
+      buffer=lines.pop()||"";
+
+      for(const line of lines){
+        if(state.request!==request)break;
+        const trimmed=line.trim();
+        if(!trimmed.startsWith("data:"))continue;
+        const data=trimmed.slice(5).trim();
+        if(data==="[DONE]")continue;
+
+        let packet;
+        try{packet=JSON.parse(data)}catch(e){continue}
+        if(packet.error)throw new Error(packet.error.message||"The AI service returned an error.");
+
+        const delta=packet.choices?.[0]?.delta?.content;
+        if(typeof delta==="string"&&delta){
+          assistantMessage.content+=delta;
+          status("T1 is responding…");
+          if(state.activeChatId===chat.id)renderMessages();
+        }
+      }
+    }
+
+    if(state.request===request){
+      assistantMessage.streaming=false;
+      if(!assistantMessage.content.trim()){
+        assistantMessage.content="I received an empty response. Please try again.";
+      }
+      status("Response complete");
+    }
+  }catch(error){
+    if(error.name==="AbortError"){
+      if(!assistantMessage.content)assistantMessage.content="Response stopped.";
+      assistantMessage.streaming=false;
+    }else{
+      assistantMessage.streaming=false;
+      assistantMessage.content=assistantMessage.content
+        ?assistantMessage.content+"\n\n**Connection interrupted:** "+error.message
+        :"**Unable to connect:** "+error.message+"\n\nCheck your API key, model name, internet connection, and OpenRouter account.";
+      status("Connection error");
+    }
+  }finally{
+    if(state.request===request){
+      state.request=null;
+      updateSendButton();
+    }
+    assistantMessage.streaming=false;
+    chat.updatedAt=Date.now();
+    save();
+    renderSidebar();
+    if(state.activeChatId===chat.id)renderMessages();
+    updateHeader();
+  }
+}
+function openSettings(){
+  $("apiKeyInput").value=state.apiKey;
+  $("modelInput").value=state.model||DEFAULT_MODEL;
+  $("settingsError").style.display="none";
+  $("settingsError").textContent="";
+  $("apiKeyInput").type="password";
+  $("toggleApiKeyButton").textContent="Show";
+  openModal("settingsModal");
+}
+function requestSettingsUnlock(){
+  $("apiUnlockPassword").value="";
+  $("apiUnlockError").style.display="none";
+  $("apiUnlockError").textContent="";
+  openModal("apiUnlockModal");
+  setTimeout(()=>$("apiUnlockPassword").focus(),50);
+}
+function saveSettings(){
+  const key=$("apiKeyInput").value.trim();
+  const model=$("modelInput").value.trim()||DEFAULT_MODEL;
+  if(key&&!/^sk-or-v1-[A-Za-z0-9_-]+$/.test(key)){$("settingsError").textContent="This key does not look like an OpenRouter key. Check it and try again.";
+    $("settingsError").style.display="block";
+    return;
+  }
+  state.apiKey=key;
+  state.model=model;
+  save();
+  closeModal("settingsModal");
+  updateHeader();
+  status("Connection settings saved");
+}
+function autoCloseOnBackdrop(){
+  document.querySelectorAll(".modal").forEach(modal=>{
+    modal.addEventListener("click",event=>{
+      if(event.target===modal)closeModal(modal.id);
+    });
+  });
+}
+
+/* Events */
+$("newChatButton").addEventListener("click",()=>createChat(true));
+$("sendButton").addEventListener("click",sendMessage);
+$("messageInput").addEventListener("input",autoResizeInput);
+$("messageInput").addEventListener("keydown",event=>{
+  if(event.key==="Enter"&&!event.shiftKey){
+    event.preventDefault();
+    sendMessage();
+  }
+});
+$("mobileMenuButton").addEventListener("click",toggleSidebar);
+$("mobileOverlay").addEventListener("click",closeSidebar);
+$("settingsButton").addEventListener("click",requestSettingsUnlock);
+$("topSettingsButton").addEventListener("click",requestSettingsUnlock);
+
+$("apiUnlockForm").addEventListener("submit",event=>{
+  event.preventDefault();
+  if(Date.now()<state.unlockBlockedUntil){
+    $("apiUnlockError").textContent="Too many attempts. Please wait a moment.";
+    $("apiUnlockError").style.display="block";
+    return;
+  }
+  if($("apiUnlockPassword").value===SETTINGS_PASSWORD){
+    state.unlockAttempts=0;
+    closeModal("apiUnlockModal");
+    openSettings();
+  }else{
+    state.unlockAttempts++;
+    $("apiUnlockError").textContent="Incorrect password.";
+    $("apiUnlockError").style.display="block";
+    if(state.unlockAttempts>=5){
+      state.unlockAttempts=0;
+      state.unlockBlockedUntil=Date.now()+30000;
+      $("apiUnlockError").textContent="Too many attempts. Try again in 30 seconds.";
+    }
+  }
+});
+$("cancelUnlockButton").addEventListener("click",()=>closeModal("apiUnlockModal"));
+$("toggleApiKeyButton").addEventListener("click",()=>{
+  const field=$("apiKeyInput");
+  const show=field.type==="password";
+  field.type=show?"text":"password";
+  $("toggleApiKeyButton").textContent=show?"Hide":"Show";
+});
+$("saveSettingsButton").addEventListener("click",saveSettings);
+$("closeSettingsButton").addEventListener("click",()=>closeModal("settingsModal"));
+
+$("systemPromptButton").addEventListener("click",()=>{
+  $("systemPromptInput").value=state.systemPrompt;
+  openModal("systemPromptModal");
+});
+$("clearPromptButton").addEventListener("click",()=>{
+  $("systemPromptInput").value=DEFAULT_SYSTEM_PROMPT;
+});
+$("savePromptButton").addEventListener("click",()=>{
+  state.systemPrompt=$("systemPromptInput").value.trim()||DEFAULT_SYSTEM_PROMPT;
+  save();
+  closeModal("systemPromptModal");
+  status("System prompt saved");
+});
+$("closePromptButton").addEventListener("click",()=>closeModal("systemPromptModal"));
+
+$("renameButton").addEventListener("click",()=>{
+  const chat=activeChat();
+  if(!chat)return;
+  state.renameId=chat.id;
+  $("renameInput").value=chat.title||"";
+  openModal("renameModal");
+});
+$("cancelRenameButton").addEventListener("click",()=>closeModal("renameModal"));
+$("saveRenameButton").addEventListener("click",()=>{
+  if(!state.renameId)return;
+  renameChat(state.renameId,$("renameInput").value||"New Conversation");
+  state.renameId=null;
+  closeModal("renameModal");
+});
+$("renameInput").addEventListener("keydown",event=>{
+  if(event.key==="Enter"){
+    event.preventDefault();
+    $("saveRenameButton").click();
+  }
+});
+
+$("cancelDeleteButton").addEventListener("click",()=>closeModal("deleteModal"));
+$("confirmDeleteButton").addEventListener("click",()=>{
+  if(state.deleteId)deleteChat(state.deleteId);
+  state.deleteId=null;
+  closeModal("deleteModal");
+});
+
+$("themeButton").addEventListener("click",()=>{
+  state.dark=!state.dark;
+  document.body.classList.toggle("light-mode",!state.dark);
+  $("themeIcon").textContent=state.dark?"☼":"☾";
+  $("themeText").textContent=state.dark?"Visual Theme: Dark":"Visual Theme: Light";
+  save();
+});
+$("attachButton").addEventListener("click",()=>{
+  const choice=prompt("Type S to open settings, P to edit system prompt, or N for a new conversation.");
+  if(!choice)return;
+  const value=choice.trim().toLowerCase();
+  if(value==="s")requestSettingsUnlock();
+  else if(value==="p"){
+    $("systemPromptInput").value=state.systemPrompt;
+    openModal("systemPromptModal");
+  }else if(value==="n")createChat(true);
+});
+autoCloseOnBackdrop();
+
+/* Start the app immediately; never wait for an API request to finish loading. */
+load();
+renderAll();
+status("Ready");
+
+/* Hide the loading screen as soon as the page is usable.
+   Five seconds is only a hard safety limit, not a required delay. */
+let loadingHidden=false;
+function hideLoading(){
+  if(loadingHidden)return;
+  loadingHidden=true;
+  $("loading").classList.add("hidden");
+  setTimeout(()=>$("loading")?.remove(),350);
+}
+const loadingStart=Date.now();
+function hideLoadingFast(){
+  const elapsed=Date.now()-loadingStart;
+  setTimeout(hideLoading,Math.max(250,450-elapsed));
+}
+if(document.readyState==="complete"){
+  hideLoadingFast();
+}else{
+  window.addEventListener("load",hideLoadingFast,{once:true});
+}
+setTimeout(hideLoading,5000);
+})();
+</script>
+</body>
+</html>
